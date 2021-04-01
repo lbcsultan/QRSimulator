@@ -6,5 +6,5 @@ Receiver (Scanner) verifies sender's digital signature.
 
 # Used resources
 
-qrcode.js from https://davidshimjs.github.io/qrcodejs/
-node-forge from https://www.npmjs.com/package/node-forge
+- qrcode.js from https://davidshimjs.github.io/qrcodejs/
+- node-forge from https://www.npmjs.com/package/node-forge
