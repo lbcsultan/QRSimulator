@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QRCode</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js" integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js" integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc" crossorigin="anonymous"></script>
+  <script src="./qrcode.js"></script>
+  <script src="./forge.min.js"></script>
+</head>
+
+<body>
+  <header class="container">
+    <h1 class="display-4">QR Code Simulator </h1>
+    <p> 소스코드 참고: <a href="https://davidshimjs.github.io/qrcodejs/"> qrcode.js </a> </p>
+  </header>
+
+  <main class="container">
+    <hr>
+    <h2>송신자측 - QR Generator </h2>
+    <div class="row">
+      <div class="col">
+        <h4>QRCode에 넣을 정보를 입력하세요</h4> 
+        <table class="table table-primary table-striped">
+          <tr>
+            <td><label for="product">제품명</label></td>
+            <td><input type="text" id="product" value="iphone"></td>
+          </tr>
+          <tr>
+            <td><label for="no">수량</label></td>
+            <td><input type="number" id="no" value=1></td>
+          </tr>
+          <tr>
+            <td><label for="price">가격</label></td>
+            <td><input type="number" id="price" value=1000000> </td>
+          </tr>
+          <tr>
+            <td><label for="seller">판매자</label></td>
+            <td><input type="text" id="seller" value="판매왕"> </td>
+          </tr>
+          <tr>
+            <td><label for="url">URL</label></td>
+            <td><input id="url" type="url" value="http://cris.joongbu.ac.kr" /></td>
+          </tr>
+        </table> 
+        <button onclick="clicked()">확인</button>
+        <button onclick="erase()">QRCode 지우기</button>
+        <br><br>
+      </div>
+      <div class="col">
+        <div id="output" class="box-qr" onclick="erase()"></div>
+      </div>
+    </div>
+    
+    <hr>
+    <div>
+      <h4>QRCode로 전달되는 정보 </h4> 
+      <p id="qrstring">Codes: </p>
+      <p id="qrlength">Bytes: </p>
+    </div>
+    <hr>
+
+    <h2>수신자측 - QR Scanner </h2>
+    <div class="row">
+      <div class="col">
+        <h4> QRCode로 수신된 정보 </h4>
+        <table class="table table-success table-striped">
+          <tr>
+            <td><label for="product">제품명</label></td>
+            <td><span id="product_info"></span></td>
+          </tr>
+          <tr>
+            <td><label for="no">수량</label></td>
+            <td><span id="no_info"></span></td>
+          </tr>
+          <tr>
+            <td><label for="price">가격</label></td>
+            <td><span id="price_info"></span> </td>
+          </tr>
+          <tr>
+            <td><label for="price">판매자</label></td>
+            <td><span id="seller_info"></span> </td>
+          </tr>
+          <tr>
+            <td><label for="url">URL</label></td>
+            <td><span id="url_info"></span></td>
+          </tr>
+          <tr>
+            <td>현재시간</td>
+            <td><span id="ctime_info"></span></td>
+          </tr>
+        </table>
+      </div>
+      <div class="col">
+
+      </div>
+    </div>
+    <p>서명값: <span id="sig_info"></span> </p>
+    <p>서명값 검증: <span id="verify_info"></span></p>
+    <p>시간 검증: <span id="verify_time"></span> </p>
+
+  </main>
+
+  <script>
+    const userPrivateKeyPem = 
+`-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEA7BoGIt4n6GDbsPITa6pJInh1GUIbzYOVW1y5mFp4iGsE6PFJ
+fWGyMmwYnGvLjfq58pkLyFDYAqaqvP1z+OOScINOtTuyJAYHQB0Ex/3faPK0/nFk
+EdSLln2RXtu2xyQ+/6kUiJpId1hbhmsVqd6y83KYyCIDK0zSjIul54du2YNf6gKM
+FeP8R9OnuOKZ5WV+8wTlMy/gNvBLjZrWIcRL76xrp+agu0RmLkIKG8LOuAJhVpxi
+Htt/NNRh8DN4aLPFOW4oqBXg6dxaR4ZX90zICHoVBLozS1/4N1sE7S0iXjNcCVV/
+bZV+SBp61uLDeuH4BqriI4jhh3mHzgO4i9SRkQIDAQABAoIBAGUdBBG8uLShfpS6
+J60NYYLcubGWiVeribR18poX7NTnmFO2ujVzOKC1gJjE5YkpnqcR+mTQkqIYBLkp
+hphJxfZflb6yESmyVzqS8vA/foVwpCjwIN4t+5X4suBAEngYws40+DFEedJ6yb+4
+bq+wS01Nf7b+MgNCRE2ipOuSKdwGv899+IGcEgh60byN6KVvfjShq3/WuDqxEE9t
+sujdJWggGjDpNxFrB1vGYxc9rG2ajfHEfQE5awEQ7G+VC3nOybZPNL4DZgYj+VXq
+SE4ZubC7io1S/3QKyDyeHvKBjMLLRSU9D1GL2nbporJ1Q3KoDzgbFV6c9kgn3Wb1
+Pa25te0CgYEA/FFjzQtByfaWSkprakYLraJYMQooev8DKS4jWwUBWTJdomvI77H8
+yJAQmHXm5KwaMwVpJuy+/pN4Z0o42/5WMpzxqZdIla74+K5j/lSWkxDSd+Tb6D8I
+uuaT2ybUhrNraexQSjyUeNoS6xwqHmB6/pz42zpC/z6E++JH9uO7Lk8CgYEA74wN
+ph4aCoIVjLh8aRmd9HwVLxkXqqvexMS1yJl5DmauQMZjGlCF82vY7PC1WCvbq8Yn
+uPo2u4Li9z3ZT0C+bJgLjNYdrVu5VDWi5mNK/beWJPcZ9wi1XbNfgbIhH1XPKTok
+VTEMS3HqB/ZDg3TVKE/MTOP60ZxUS0gdTykfKh8CgYEAwMoDgpk2VHXIUc1ZE6Of
+qrUfw6CqW4hcRuvM8e/6HshACSloJ9WMe0awl32GxXTGs/NPbAF60hOl7O4mUdmc
+zSFj+RvxxwUhkQnWt260enxhBGDmsibvqbcihFHAE4gl65I3qvFs1IZz7BbiC8HW
+WJNiBkgXBuYjQD6elANfczsCgYEAwi0BE1rrOQFhfoQ9NOSzCW9brKXmbU6McWwS
+/tyJKIdLUO5/fuEu87bETKyCE0rZ8k/Z+zO4Eh9y43+bG4cb1OMa2brmq5PiksQ3
+nBF4xFmAt84lmf3RJnc0P+mot8HS/1RGB1iO4skgL/wLlg+qidbFgL58nlTeb3ex
+am2m+XkCgYEA9UHK3+Kv02/5ldJWgpbtE8gwysDKjKa3RtqJScGxV/6qOYBF1Lzy
+KGDh8GfeViz57vsUEsixjZKthhW9zP6uxJwA8tDke5tGvdxSvjFAC/VUXUgXRqBJ
+IkfdKbpla/tny4YpQjYWO/S8zZTxvRLNlfc0KpAWT+CLIVJipKLteDg=
+-----END RSA PRIVATE KEY-----
+`;
+
+const userCertPem = 
+`-----BEGIN CERTIFICATE-----
+MIID9zCCAt+gAwIBAgIBATANBgkqhkiG9w0BAQUFADBkMQ4wDAYDVQQDEwViY2xl
+ZTELMAkGA1UEBhMCS1IxEzARBgNVBAgTCmd5ZW9uZ2dpZG8xETAPBgNVBAcTCGdv
+eWFuZ3NpMRAwDgYDVQQKEwdqb29uZ2J1MQswCQYDVQQLEwJpczAeFw0xOTEyMTAx
+MjA2MjFaFw0yMDEyMTAxMjA2MjFaMGQxDjAMBgNVBAMTBWJjbGVlMQswCQYDVQQG
+EwJLUjETMBEGA1UECBMKZ3llb25nZ2lkbzERMA8GA1UEBxMIZ295YW5nc2kxEDAO
+BgNVBAoTB2pvb25nYnUxCzAJBgNVBAsTAmlzMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEA7BoGIt4n6GDbsPITa6pJInh1GUIbzYOVW1y5mFp4iGsE6PFJ
+fWGyMmwYnGvLjfq58pkLyFDYAqaqvP1z+OOScINOtTuyJAYHQB0Ex/3faPK0/nFk
+EdSLln2RXtu2xyQ+/6kUiJpId1hbhmsVqd6y83KYyCIDK0zSjIul54du2YNf6gKM
+FeP8R9OnuOKZ5WV+8wTlMy/gNvBLjZrWIcRL76xrp+agu0RmLkIKG8LOuAJhVpxi
+Htt/NNRh8DN4aLPFOW4oqBXg6dxaR4ZX90zICHoVBLozS1/4N1sE7S0iXjNcCVV/
+bZV+SBp61uLDeuH4BqriI4jhh3mHzgO4i9SRkQIDAQABo4GzMIGwMAwGA1UdEwQF
+MAMBAf8wCwYDVR0PBAQDAgL0MDsGA1UdJQQ0MDIGCCsGAQUFBwMBBggrBgEFBQcD
+AgYIKwYBBQUHAwMGCCsGAQUFBwMEBggrBgEFBQcDCDARBglghkgBhvhCAQEEBAMC
+APcwJAYDVR0RBB0wG4YTaHR0cDovL2V4YW1wbGUub3JnL4cEfwAAATAdBgNVHQ4E
+FgQU4zGVncKXUxGbsnzTW/g5Jl14o6kwDQYJKoZIhvcNAQEFBQADggEBAIe+Xrr0
+OdvE5wDQccugCX5Wlia7+8XI6XBpp/X7XWp54rcOgzYJmFHU96NuYhwny88JR6wc
+9G3CLFHNxVa8INbqQyBQlz0VU4wL1giOzR8CnFov8D7t+ctdTA3SHfLW0zhIIpmB
+TI+WznnoU48EsHhNKW5rtzXSudPeqK+ef6h3GBcq4fe0QHeBzHgL/7imqxLf2Oq5
+QOknGgpkb+Aps0h8WXD7XxRi5Pk1l9nKt57Hup5BlUedf0dLRxHV4CUYDtkmikgt
+f5Qb/AfT2lb8MPINvtDjm2BLEt/qJ2+ziCYEss9CNdVrr6VS7X2Bodty2n5ONUGv
+6XrauU/YyYT42XY=
+-----END CERTIFICATE-----
+`;
+const pki = forge.pki;
+const userCert = pki.certificateFromPem(userCertPem);
+const userPublicKey = userCert.publicKey;
+const userPrivateKey = pki.privateKeyFromPem(userPrivateKeyPem);
+
+    function clicked() {
+      // QRCode 객체 생성 
+      document.getElementById("output").innerHTML = "";
+      let qrcode = new QRCode("output", {
+        width: 350,
+        height: 350,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      // 송신자측 - QR Generator 
+      const curr_time = new Date();
+      const info = {
+        product: document.getElementById("product").value,
+        no: document.getElementById("no").value,
+        price: document.getElementById("price").value,
+        seller: document.getElementById("seller").value,
+        url: document.getElementById("url").value,
+        ctime: curr_time.getTime()
+      }
+      // JSON object를 string으로 변환 
+      const infoString = JSON.stringify(info);
+
+      // 전자서명 생성 
+      let md = forge.md.sha1.create();
+      md.update(infoString, 'utf8'); 
+      const signature = userPrivateKey.sign(md);
+      const signatureHex = forge.util.bytesToHex(signature);
+      
+      const signedInfo = {
+        product: document.getElementById("product").value,
+        no: document.getElementById("no").value,
+        price: document.getElementById("price").value,
+        seller: document.getElementById("seller").value,
+        url: document.getElementById("url").value,
+        ctime: curr_time.getTime(),
+        sig: signatureHex  // 서명값 추가 
+      }
+      // JSON object를 string으로 변환 
+      const signedInfoString = JSON.stringify(signedInfo);
+      // QRCode 생성 
+      qrcode.makeCode(signedInfoString);
+
+      // QRCode로 전달되는 정보 표시 
+      document.getElementById("qrstring").innerHTML = "Codes: "+signedInfoString;
+      document.getElementById("qrlength").innerHTML = "Bytes: "+signedInfoString.length;
+
+      // 수신자측 - QR scanner 
+      // JSON string을 JSON object로 변환 
+      let signedInfoObj = JSON.parse(signedInfoString);
+
+      document.getElementById("product_info").innerHTML = signedInfoObj.product;
+      document.getElementById("no_info").innerHTML = signedInfoObj.no;
+      document.getElementById("price_info").innerHTML = signedInfoObj.price;
+      document.getElementById("seller_info").innerHTML = signedInfoObj.seller;
+      document.getElementById("url_info").innerHTML = signedInfoObj.url;
+      document.getElementById("ctime_info").innerHTML = new Date(signedInfoObj.ctime);
+      document.getElementById("sig_info").innerHTML = signedInfoObj.sig;
+
+      // 전자서명 검증 
+      const signature1Hex = signedInfoObj.sig;
+      const signature1 = forge.util.hexToBytes(signature1Hex);
+      const info1 = {
+        product: signedInfoObj.product,
+        no: signedInfoObj.no,
+        price: signedInfoObj.price,
+        seller: signedInfoObj.seller,
+        url: signedInfoObj.url,
+        ctime: signedInfoObj.ctime 
+      }
+      const info1String = JSON.stringify(info1);
+      let md1 = forge.md.sha1.create();
+      md1.update(info1String, 'utf8'); 
+      let verified1 = userPublicKey.verify(md1.digest().bytes(), signature1);
+      document.getElementById("verify_info").innerHTML = verified1;
+
+      // 시간차이 검증 - 재전송 공격 방지 
+      const curr_time1 = new Date();
+      time_diff = curr_time1.getTime() - signedInfoObj.ctime;
+      document.getElementById("verify_time").innerHTML = time_diff+" milliseconds";
+    }
+
+    // QRCode 지우기 
+    function erase() {
+      document.getElementById("output").innerHTML = "";
+      document.getElementById("product_info").innerHTML = "";
+      document.getElementById("no_info").innerHTML = "";
+      document.getElementById("price_info").innerHTML = "";
+      document.getElementById("seller_info").innerHTML = "";
+      document.getElementById("url_info").innerHTML = "";
+      document.getElementById("ctime_info").innerHTML = "";
+
+      document.getElementById("qrstring").innerHTML = "Codes:"; 
+      document.getElementById("qrlength").innerHTML = "Bytes:"; 
+
+      document.getElementById("sig_info").innerHTML = "";
+      document.getElementById("verify_info").innerHTML = "";
+      document.getElementById("verify_time").innerHTML = "";
+    }
+
+  </script>
+
+</body>
+
+</html>
