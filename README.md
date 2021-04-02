@@ -9,3 +9,6 @@ QRCode Generation Simulator
 
 - qrcode.js from https://davidshimjs.github.io/qrcodejs/
 - node-forge from https://www.npmjs.com/package/node-forge
+
+# Deployed 
+- Demo service https://qrsimulator.netlify.app/
